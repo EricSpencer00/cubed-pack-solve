@@ -1,0 +1,697 @@
+{
+  "success": true,
+  "patterns": [
+    {
+      "id": "corner_1",
+      "name": "Corner Start (4\u00d74\u00d72)",
+      "description": "4 pieces at corner, in 50 solutions",
+      "difficulty": "easy",
+      "tip": "Start your puzzle from the corner with these pieces",
+      "pieces": [
+        [
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            2,
+            0,
+            0
+          ],
+          [
+            1,
+            1,
+            0
+          ]
+        ],
+        [
+          [
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            2,
+            0
+          ],
+          [
+            1,
+            2,
+            0
+          ],
+          [
+            0,
+            3,
+            0
+          ]
+        ],
+        [
+          [
+            0,
+            0,
+            1
+          ],
+          [
+            1,
+            0,
+            1
+          ],
+          [
+            2,
+            0,
+            1
+          ],
+          [
+            1,
+            1,
+            1
+          ]
+        ],
+        [
+          [
+            2,
+            1,
+            0
+          ],
+          [
+            2,
+            2,
+            0
+          ],
+          [
+            3,
+            2,
+            0
+          ],
+          [
+            2,
+            3,
+            0
+          ]
+        ]
+      ],
+      "dimensions": [
+        4,
+        4,
+        2
+      ],
+      "frequency": 50
+    },
+    {
+      "id": "corner_2",
+      "name": "Corner Start (3\u00d74\u00d74)",
+      "description": "4 pieces at corner, in 50 solutions",
+      "difficulty": "easy",
+      "tip": "Start your puzzle from the corner with these pieces",
+      "pieces": [
+        [
+          [
+            0,
+            1,
+            1
+          ],
+          [
+            0,
+            2,
+            1
+          ],
+          [
+            1,
+            2,
+            1
+          ],
+          [
+            0,
+            3,
+            1
+          ]
+        ],
+        [
+          [
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            2,
+            0
+          ],
+          [
+            1,
+            2,
+            0
+          ],
+          [
+            0,
+            3,
+            0
+          ]
+        ],
+        [
+          [
+            0,
+            0,
+            1
+          ],
+          [
+            1,
+            0,
+            1
+          ],
+          [
+            2,
+            0,
+            1
+          ],
+          [
+            1,
+            1,
+            1
+          ]
+        ],
+        [
+          [
+            2,
+            2,
+            1
+          ],
+          [
+            2,
+            2,
+            2
+          ],
+          [
+            2,
+            3,
+            2
+          ],
+          [
+            2,
+            2,
+            3
+          ]
+        ]
+      ],
+      "dimensions": [
+        3,
+        4,
+        4
+      ],
+      "frequency": 50
+    },
+    {
+      "id": "chunk_3",
+      "name": "3D Corner (2\u00d73\u00d73)",
+      "description": "3 pieces, appears in 50 solutions",
+      "difficulty": "medium",
+      "tip": "A compact 3D corner chunk - pieces interlock in all directions",
+      "pieces": [
+        [
+          [
+            3,
+            3,
+            0
+          ],
+          [
+            2,
+            3,
+            1
+          ],
+          [
+            3,
+            3,
+            1
+          ],
+          [
+            3,
+            3,
+            2
+          ]
+        ],
+        [
+          [
+            2,
+            1,
+            0
+          ],
+          [
+            2,
+            2,
+            0
+          ],
+          [
+            3,
+            2,
+            0
+          ],
+          [
+            2,
+            3,
+            0
+          ]
+        ],
+        [
+          [
+            3,
+            1,
+            0
+          ],
+          [
+            3,
+            1,
+            1
+          ],
+          [
+            3,
+            2,
+            1
+          ],
+          [
+            3,
+            1,
+            2
+          ]
+        ]
+      ],
+      "dimensions": [
+        2,
+        3,
+        3
+      ],
+      "frequency": 50
+    },
+    {
+      "id": "chunk_4",
+      "name": "Region (3\u00d74\u00d72)",
+      "description": "3 pieces, appears in 50 solutions",
+      "difficulty": "medium",
+      "tip": "A 3\u00d74\u00d72 region - visualize how pieces mesh together",
+      "pieces": [
+        [
+          [
+            0,
+            0,
+            1
+          ],
+          [
+            1,
+            0,
+            1
+          ],
+          [
+            2,
+            0,
+            1
+          ],
+          [
+            1,
+            1,
+            1
+          ]
+        ],
+        [
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            2,
+            0,
+            0
+          ],
+          [
+            1,
+            1,
+            0
+          ]
+        ],
+        [
+          [
+            0,
+            1,
+            1
+          ],
+          [
+            0,
+            2,
+            1
+          ],
+          [
+            1,
+            2,
+            1
+          ],
+          [
+            0,
+            3,
+            1
+          ]
+        ]
+      ],
+      "dimensions": [
+        3,
+        4,
+        2
+      ],
+      "frequency": 50
+    },
+    {
+      "id": "chunk_5",
+      "name": "Region (2\u00d73\u00d74)",
+      "description": "3 pieces, appears in 50 solutions",
+      "difficulty": "medium",
+      "tip": "A 2\u00d73\u00d74 region - visualize how pieces mesh together",
+      "pieces": [
+        [
+          [
+            2,
+            2,
+            1
+          ],
+          [
+            2,
+            2,
+            2
+          ],
+          [
+            2,
+            3,
+            2
+          ],
+          [
+            2,
+            2,
+            3
+          ]
+        ],
+        [
+          [
+            2,
+            1,
+            0
+          ],
+          [
+            2,
+            2,
+            0
+          ],
+          [
+            3,
+            2,
+            0
+          ],
+          [
+            2,
+            3,
+            0
+          ]
+        ],
+        [
+          [
+            3,
+            1,
+            0
+          ],
+          [
+            3,
+            1,
+            1
+          ],
+          [
+            3,
+            2,
+            1
+          ],
+          [
+            3,
+            1,
+            2
+          ]
+        ]
+      ],
+      "dimensions": [
+        2,
+        3,
+        4
+      ],
+      "frequency": 50
+    },
+    {
+      "id": "chunk_6",
+      "name": "Region (3\u00d72\u00d74)",
+      "description": "3 pieces, appears in 50 solutions",
+      "difficulty": "medium",
+      "tip": "A 3\u00d72\u00d74 region - visualize how pieces mesh together",
+      "pieces": [
+        [
+          [
+            1,
+            5,
+            1
+          ],
+          [
+            1,
+            4,
+            2
+          ],
+          [
+            1,
+            5,
+            2
+          ],
+          [
+            1,
+            5,
+            3
+          ]
+        ],
+        [
+          [
+            1,
+            4,
+            0
+          ],
+          [
+            0,
+            5,
+            0
+          ],
+          [
+            1,
+            5,
+            0
+          ],
+          [
+            2,
+            5,
+            0
+          ]
+        ],
+        [
+          [
+            0,
+            4,
+            0
+          ],
+          [
+            0,
+            4,
+            1
+          ],
+          [
+            0,
+            5,
+            1
+          ],
+          [
+            0,
+            4,
+            2
+          ]
+        ]
+      ],
+      "dimensions": [
+        3,
+        2,
+        4
+      ],
+      "frequency": 50
+    },
+    {
+      "id": "chunk_7",
+      "name": "Region (3\u00d72\u00d74)",
+      "description": "3 pieces, appears in 49 solutions",
+      "difficulty": "medium",
+      "tip": "A 3\u00d72\u00d74 region - visualize how pieces mesh together",
+      "pieces": [
+        [
+          [
+            4,
+            5,
+            1
+          ],
+          [
+            4,
+            4,
+            2
+          ],
+          [
+            4,
+            5,
+            2
+          ],
+          [
+            4,
+            5,
+            3
+          ]
+        ],
+        [
+          [
+            4,
+            4,
+            0
+          ],
+          [
+            3,
+            5,
+            0
+          ],
+          [
+            4,
+            5,
+            0
+          ],
+          [
+            5,
+            5,
+            0
+          ]
+        ],
+        [
+          [
+            5,
+            4,
+            0
+          ],
+          [
+            5,
+            4,
+            1
+          ],
+          [
+            5,
+            5,
+            1
+          ],
+          [
+            5,
+            4,
+            2
+          ]
+        ]
+      ],
+      "dimensions": [
+        3,
+        2,
+        4
+      ],
+      "frequency": 49
+    },
+    {
+      "id": "chunk_8",
+      "name": "Region (3\u00d74\u00d72)",
+      "description": "3 pieces, appears in 44 solutions",
+      "difficulty": "medium",
+      "tip": "A 3\u00d74\u00d72 region - visualize how pieces mesh together",
+      "pieces": [
+        [
+          [
+            0,
+            0,
+            2
+          ],
+          [
+            0,
+            1,
+            2
+          ],
+          [
+            1,
+            1,
+            2
+          ],
+          [
+            0,
+            2,
+            2
+          ]
+        ],
+        [
+          [
+            0,
+            0,
+            1
+          ],
+          [
+            1,
+            0,
+            1
+          ],
+          [
+            2,
+            0,
+            1
+          ],
+          [
+            1,
+            1,
+            1
+          ]
+        ],
+        [
+          [
+            0,
+            1,
+            1
+          ],
+          [
+            0,
+            2,
+            1
+          ],
+          [
+            1,
+            2,
+            1
+          ],
+          [
+            0,
+            3,
+            1
+          ]
+        ]
+      ],
+      "dimensions": [
+        3,
+        4,
+        2
+      ],
+      "frequency": 44
+    }
+  ]
+}

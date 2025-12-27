@@ -543,10 +543,10 @@ function setMode(mode) {
         stopAutoPlay();
     }
     
-    // Load data if needed
-    if (mode === 'tutorial' && isServerOnline) {
+    // Load data if needed (works for both static and live)
+    if (mode === 'tutorial') {
         loadTutorial();
-    } else if (mode === 'patterns' && isServerOnline) {
+    } else if (mode === 'patterns') {
         loadPatterns();
     }
     
@@ -563,20 +563,34 @@ function setMode(mode) {
 // =============================================================================
 
 async function loadTutorial() {
-    if (!isServerOnline || !solutionData || solutionData.solutions.length === 0) {
-        document.getElementById('tutorial-tip').textContent = 'Generate at least one solution first!';
-        return;
-    }
-    
     try {
-        const response = await fetch(`/api/tutorial/${currentSolutionIndex}`);
-        if (response.ok) {
-            tutorialData = await response.json();
+        let data;
+        
+        if (isServerOnline) {
+            // Live mode: Load from API
+            const response = await fetch(`/api/tutorial/${currentSolutionIndex}`);
+            if (response.ok) {
+                tutorialData = await response.json();
+            }
+        } else {
+            // Static mode: Load from static data file
+            const response = await fetch('data/tutorials.json');
+            if (response.ok) {
+                data = await response.json();
+                // Use tutorial based on current solution index (or default to first)
+                const tutorialIndex = Math.min(currentSolutionIndex, data.tutorials.length - 1);
+                tutorialData = data.tutorials[tutorialIndex];
+            }
+        }
+        
+        if (tutorialData) {
             tutorialStep = 0;
             updateTutorialUI();
+            renderTutorialStep();
         }
     } catch (e) {
         console.error('Failed to load tutorial:', e);
+        document.getElementById('tutorial-tip').textContent = 'Tutorial data not available';
     }
 }
 
@@ -584,7 +598,7 @@ function updateTutorialUI() {
     if (!tutorialData) return;
     
     const step = tutorialData.steps[tutorialStep];
-    const total = tutorialData.total_pieces;
+    const total = tutorialData.piece_count || tutorialData.total_pieces;  // Support both formats
     
     document.getElementById('tutorial-step-num').textContent = tutorialStep + 1;
     document.getElementById('tutorial-total').textContent = total;
@@ -613,7 +627,15 @@ function renderTutorialStep() {
     
     // Render pieces up to current step
     for (let i = 0; i <= tutorialStep; i++) {
-        const piece = tutorialData.ordered_pieces[i];
+        let piece;
+        // Handle both formats: static (steps[i].cells) and live (ordered_pieces[i])
+        if (tutorialData.ordered_pieces) {
+            piece = tutorialData.ordered_pieces[i];  // Live API format
+        } else {
+            const step = tutorialData.steps[i];
+            piece = step.cells;  // Static format
+        }
+        
         const color = COLORS[i % COLORS.length];
         const isCurrent = i === tutorialStep;
         
@@ -641,7 +663,8 @@ function renderTutorialStep() {
 }
 
 function tutorialNext() {
-    if (tutorialData && tutorialStep < tutorialData.total_pieces - 1) {
+    const total = tutorialData.piece_count || tutorialData.total_pieces;
+    if (tutorialData && tutorialStep < total - 1) {
         tutorialStep++;
         updateTutorialUI();
         renderTutorialStep();
@@ -725,13 +748,21 @@ function stopAutoPlay() {
 // =============================================================================
 
 async function loadPatterns() {
-    if (!isServerOnline) return;
-    
     try {
-        const response = await fetch('/api/patterns');
-        if (response.ok) {
-            patternsData = await response.json();
-            renderPatternsList();
+        if (isServerOnline) {
+            // Live mode: Load from API
+            const response = await fetch('/api/patterns');
+            if (response.ok) {
+                patternsData = await response.json();
+                renderPatternsList();
+            }
+        } else {
+            // Static mode: Load from static data file
+            const response = await fetch('data/patterns.json');
+            if (response.ok) {
+                patternsData = await response.json();
+                renderPatternsList();
+            }
         }
     } catch (e) {
         console.error('Failed to load patterns:', e);
@@ -775,15 +806,16 @@ function renderPattern(pattern) {
     clearSolution();
     
     // Render each piece in the pattern
-    pattern.pieces.forEach((piece, i) => {
+    pattern.pieces.forEach((pieceObj, i) => {
+        const cells = pieceObj.cells;  // Extract cells from piece object
         const color = COLORS[i % COLORS.length];
-        const group = createPiece(piece, color, i);
+        const group = createPiece(cells, color, i);
         pieceGroups.push(group);
         scene.add(group);
     });
     
     // Adjust camera to focus on the pattern
-    const allCells = pattern.pieces.flat();
+    const allCells = pattern.pieces.flatMap(p => p.cells);
     if (allCells.length > 0) {
         const centerX = allCells.reduce((s, c) => s + c[0], 0) / allCells.length;
         const centerY = allCells.reduce((s, c) => s + c[1], 0) / allCells.length;
