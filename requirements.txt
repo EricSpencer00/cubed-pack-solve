@@ -1,0 +1,4 @@
+# T-Tetracube 6x6x6 Cube Solver Requirements
+# Algorithm X / Dancing Links implementation
+
+numpy>=1.24.0      # For rotation matrices and array operations

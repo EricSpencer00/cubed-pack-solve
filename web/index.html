@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>T-Tetracube 6×6×6 Cube Packing Viewer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e0e0e0;
+            overflow: hidden;
+        }
+        
+        #container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+        
+        #canvas-container {
+            width: 100%;
+            height: 100%;
+        }
+        
+        #ui-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            padding: 20px;
+            pointer-events: none;
+        }
+        
+        #ui-overlay > * {
+            pointer-events: auto;
+        }
+        
+        #title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        #info {
+            background: rgba(0,0,0,0.6);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            max-width: 320px;
+        }
+        
+        #info p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        
+        #controls {
+            background: rgba(0,0,0,0.6);
+            padding: 15px;
+            border-radius: 8px;
+            max-width: 320px;
+        }
+        
+        .control-group {
+            margin-bottom: 15px;
+        }
+        
+        .control-group:last-child {
+            margin-bottom: 0;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+            color: #aaa;
+        }
+        
+        button {
+            background: #4a90d9;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 5px;
+            margin-bottom: 5px;
+            transition: background 0.2s;
+        }
+        
+        button:hover {
+            background: #357abd;
+        }
+        
+        button:disabled {
+            background: #555;
+            cursor: not-allowed;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            margin: 5px 0;
+        }
+        
+        input[type="file"] {
+            margin: 10px 0;
+        }
+        
+        #solution-nav {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        #solution-counter {
+            font-size: 16px;
+            min-width: 100px;
+            text-align: center;
+        }
+        
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            font-size: 18px;
+        }
+        
+        .spinner {
+            border: 4px solid #333;
+            border-top: 4px solid #4a90d9;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        #legend {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.6);
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 12px;
+        }
+        
+        #legend h4 {
+            margin-bottom: 10px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+            margin-right: 10px;
+        }
+        
+        #help {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.6);
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 12px;
+            max-width: 250px;
+        }
+        
+        #help h4 {
+            margin-bottom: 10px;
+        }
+        
+        #help ul {
+            padding-left: 20px;
+        }
+        
+        #help li {
+            margin: 3px 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="canvas-container"></div>
+        
+        <div id="ui-overlay">
+            <div id="title">T-Tetracube 6×6×6 Cube Packing</div>
+            
+            <div id="info">
+                <p><strong>Problem:</strong> Pack 54 T-tetracubes into a 6×6×6 cube</p>
+                <p><strong>Solutions:</strong> <span id="solution-count">Loading...</span></p>
+                <p><strong>Symmetry:</strong> Reduced modulo 24 cube rotations</p>
+            </div>
+            
+            <div id="controls">
+                <div class="control-group">
+                    <label>Load Solutions</label>
+                    <input type="file" id="file-input" accept=".json">
+                </div>
+                
+                <div class="control-group">
+                    <label>Navigate Solutions</label>
+                    <div id="solution-nav">
+                        <button id="prev-btn" disabled>◀ Prev</button>
+                        <span id="solution-counter">0 / 0</span>
+                        <button id="next-btn" disabled>Next ▶</button>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label>View Options</label>
+                    <button id="explode-btn">Toggle Explode</button>
+                    <button id="wireframe-btn">Toggle Wireframe</button>
+                    <button id="reset-btn">Reset Camera</button>
+                </div>
+                
+                <div class="control-group">
+                    <label>Opacity: <span id="opacity-value">100%</span></label>
+                    <input type="range" id="opacity-slider" min="0.1" max="1" step="0.1" value="1">
+                </div>
+            </div>
+        </div>
+        
+        <div id="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>Loading solutions...</p>
+        </div>
+        
+        <div id="help">
+            <h4>Controls</h4>
+            <ul>
+                <li><strong>Drag:</strong> Rotate view</li>
+                <li><strong>Scroll:</strong> Zoom in/out</li>
+                <li><strong>Right-drag:</strong> Pan</li>
+                <li><strong>Arrow keys:</strong> Navigate solutions</li>
+            </ul>
+        </div>
+    </div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+    
+    <script type="module" src="viewer.js"></script>
+</body>
+</html>
