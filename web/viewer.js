@@ -21,6 +21,16 @@ let isWireframe = false;
 let currentOpacity = 1.0;
 let isServerOnline = false;
 
+// Tutorial state
+let tutorialData = null;
+let tutorialStep = 0;
+let isTutorialMode = false;
+let autoPlayInterval = null;
+
+// Patterns state
+let patternsData = null;
+let currentMode = 'view'; // 'view', 'tutorial', 'patterns'
+
 // Cube parameters
 const CUBE_SIZE = 6;
 const CELL_SIZE = 1;
@@ -511,6 +521,314 @@ function animate() {
     controls.update();
     renderer.render(scene, camera);
 }
+
+// =============================================================================
+// MODE SWITCHING
+// =============================================================================
+
+function setMode(mode) {
+    currentMode = mode;
+    
+    // Update tab visuals
+    document.querySelectorAll('.mode-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.dataset.mode === mode);
+    });
+    
+    // Show/hide panels
+    document.getElementById('tutorial-panel').classList.toggle('visible', mode === 'tutorial');
+    document.getElementById('patterns-panel').classList.toggle('visible', mode === 'patterns');
+    
+    // Stop auto-play if leaving tutorial mode
+    if (mode !== 'tutorial' && autoPlayInterval) {
+        stopAutoPlay();
+    }
+    
+    // Load data if needed
+    if (mode === 'tutorial' && isServerOnline) {
+        loadTutorial();
+    } else if (mode === 'patterns' && isServerOnline) {
+        loadPatterns();
+    }
+    
+    // Reset view for patterns
+    if (mode === 'patterns') {
+        clearSolution();
+    } else if (mode === 'view' && solutionData) {
+        renderSolution(currentSolutionIndex);
+    }
+}
+
+// =============================================================================
+// TUTORIAL MODE
+// =============================================================================
+
+async function loadTutorial() {
+    if (!isServerOnline || !solutionData || solutionData.solutions.length === 0) {
+        document.getElementById('tutorial-tip').textContent = 'Generate at least one solution first!';
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/tutorial/${currentSolutionIndex}`);
+        if (response.ok) {
+            tutorialData = await response.json();
+            tutorialStep = 0;
+            updateTutorialUI();
+        }
+    } catch (e) {
+        console.error('Failed to load tutorial:', e);
+    }
+}
+
+function updateTutorialUI() {
+    if (!tutorialData) return;
+    
+    const step = tutorialData.steps[tutorialStep];
+    const total = tutorialData.total_pieces;
+    
+    document.getElementById('tutorial-step-num').textContent = tutorialStep + 1;
+    document.getElementById('tutorial-total').textContent = total;
+    document.getElementById('tutorial-progress').textContent = Math.round((tutorialStep + 1) / total * 100) + '%';
+    
+    // Piece info
+    const pieceInfo = document.getElementById('tutorial-piece-info');
+    if (step) {
+        const grounded = step.is_grounded ? '✓ On ground' : '↑ Elevated';
+        const adjacent = step.adjacent_to.length > 0 ? `Connects to: ${step.adjacent_to.join(', ')}` : 'First piece!';
+        pieceInfo.innerHTML = `<div style="margin-top:8px;font-size:13px;">${grounded} | ${adjacent}</div>`;
+    }
+    
+    // Tip
+    document.getElementById('tutorial-tip').textContent = step ? step.tip : '';
+    
+    // Nav buttons
+    document.getElementById('tutorial-prev-btn').disabled = tutorialStep <= 0;
+    document.getElementById('tutorial-next-btn').disabled = tutorialStep >= total - 1;
+}
+
+function renderTutorialStep() {
+    if (!tutorialData) return;
+    
+    clearSolution();
+    
+    // Render pieces up to current step
+    for (let i = 0; i <= tutorialStep; i++) {
+        const piece = tutorialData.ordered_pieces[i];
+        const color = COLORS[i % COLORS.length];
+        const isCurrent = i === tutorialStep;
+        
+        const group = createPiece(piece, color, i);
+        
+        // Make current piece more prominent
+        if (isCurrent) {
+            group.traverse((child) => {
+                if (child.material && child.isMesh) {
+                    child.material.emissive = new THREE.Color(0x333333);
+                }
+            });
+        } else {
+            // Make previous pieces slightly transparent
+            group.traverse((child) => {
+                if (child.material && child.isMesh) {
+                    child.material.opacity = 0.7;
+                }
+            });
+        }
+        
+        pieceGroups.push(group);
+        scene.add(group);
+    }
+}
+
+function tutorialNext() {
+    if (tutorialData && tutorialStep < tutorialData.total_pieces - 1) {
+        tutorialStep++;
+        updateTutorialUI();
+        renderTutorialStep();
+    }
+}
+
+function tutorialPrev() {
+    if (tutorialStep > 0) {
+        tutorialStep--;
+        updateTutorialUI();
+        renderTutorialStep();
+    }
+}
+
+function startTutorial() {
+    if (!tutorialData) {
+        loadTutorial().then(() => {
+            if (tutorialData) {
+                tutorialStep = 0;
+                updateTutorialUI();
+                renderTutorialStep();
+            }
+        });
+    } else {
+        tutorialStep = 0;
+        updateTutorialUI();
+        renderTutorialStep();
+    }
+}
+
+function toggleAutoPlay() {
+    if (autoPlayInterval) {
+        stopAutoPlay();
+    } else {
+        startAutoPlay();
+    }
+}
+
+function startAutoPlay() {
+    const btn = document.getElementById('auto-play-btn');
+    btn.textContent = '⏹ Stop';
+    btn.classList.add('playing');
+    
+    if (!tutorialData) {
+        loadTutorial().then(() => {
+            if (tutorialData) {
+                tutorialStep = 0;
+                renderTutorialStep();
+                autoPlayInterval = setInterval(() => {
+                    if (tutorialStep < tutorialData.total_pieces - 1) {
+                        tutorialNext();
+                    } else {
+                        stopAutoPlay();
+                    }
+                }, 800); // 800ms per piece
+            }
+        });
+    } else {
+        autoPlayInterval = setInterval(() => {
+            if (tutorialStep < tutorialData.total_pieces - 1) {
+                tutorialNext();
+            } else {
+                stopAutoPlay();
+            }
+        }, 800);
+    }
+}
+
+function stopAutoPlay() {
+    if (autoPlayInterval) {
+        clearInterval(autoPlayInterval);
+        autoPlayInterval = null;
+    }
+    const btn = document.getElementById('auto-play-btn');
+    btn.textContent = '▶ Auto Play';
+    btn.classList.remove('playing');
+}
+
+// =============================================================================
+// PATTERNS MODE
+// =============================================================================
+
+async function loadPatterns() {
+    if (!isServerOnline) return;
+    
+    try {
+        const response = await fetch('/api/patterns');
+        if (response.ok) {
+            patternsData = await response.json();
+            renderPatternsList();
+        }
+    } catch (e) {
+        console.error('Failed to load patterns:', e);
+    }
+}
+
+function renderPatternsList() {
+    if (!patternsData) return;
+    
+    const container = document.getElementById('patterns-list');
+    container.innerHTML = '';
+    
+    for (const pattern of patternsData.patterns) {
+        const card = document.createElement('div');
+        card.className = 'pattern-card';
+        card.dataset.patternId = pattern.id;
+        
+        card.innerHTML = `
+            <div class="pattern-name">
+                ${pattern.name}
+                <span class="pattern-difficulty ${pattern.difficulty}">${pattern.difficulty}</span>
+            </div>
+            <div class="pattern-desc">${pattern.description}</div>
+            <div class="pattern-tip">💡 ${pattern.tip}</div>
+        `;
+        
+        card.addEventListener('click', () => {
+            // Update active state
+            document.querySelectorAll('.pattern-card').forEach(c => c.classList.remove('active'));
+            card.classList.add('active');
+            
+            // Render the pattern
+            renderPattern(pattern);
+        });
+        
+        container.appendChild(card);
+    }
+}
+
+function renderPattern(pattern) {
+    clearSolution();
+    
+    // Render each piece in the pattern
+    pattern.pieces.forEach((piece, i) => {
+        const color = COLORS[i % COLORS.length];
+        const group = createPiece(piece, color, i);
+        pieceGroups.push(group);
+        scene.add(group);
+    });
+    
+    // Adjust camera to focus on the pattern
+    const allCells = pattern.pieces.flat();
+    if (allCells.length > 0) {
+        const centerX = allCells.reduce((s, c) => s + c[0], 0) / allCells.length;
+        const centerY = allCells.reduce((s, c) => s + c[1], 0) / allCells.length;
+        const centerZ = allCells.reduce((s, c) => s + c[2], 0) / allCells.length;
+        
+        controls.target.set(centerX, centerY, centerZ);
+        camera.position.set(centerX + 8, centerY + 8, centerZ + 8);
+        controls.update();
+    }
+}
+
+// =============================================================================
+// EXTENDED UI SETUP
+// =============================================================================
+
+function setupModeListeners() {
+    // Mode tabs
+    document.querySelectorAll('.mode-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            setMode(tab.dataset.mode);
+        });
+    });
+    
+    // Tutorial controls
+    document.getElementById('tutorial-prev-btn').addEventListener('click', tutorialPrev);
+    document.getElementById('tutorial-next-btn').addEventListener('click', tutorialNext);
+    document.getElementById('tutorial-start-btn').addEventListener('click', startTutorial);
+    document.getElementById('auto-play-btn').addEventListener('click', toggleAutoPlay);
+    
+    // Keyboard shortcuts for tutorial
+    document.addEventListener('keydown', (e) => {
+        if (currentMode === 'tutorial') {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                tutorialNext();
+                e.preventDefault();
+            } else if (e.key === 'ArrowLeft') {
+                tutorialPrev();
+                e.preventDefault();
+            }
+        }
+    });
+}
+
+// Call setup after DOM is ready
+setTimeout(setupModeListeners, 100);
 
 // =============================================================================
 // START

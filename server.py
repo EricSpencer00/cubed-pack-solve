@@ -28,6 +28,13 @@ sys.path.insert(0, str(Path(__file__).parent))
 from solver.placements import get_placements, NUM_CELLS
 from solver.exact_cover import build_dlx_matrix
 from solver.symmetry import SolutionSet, placements_to_pieces
+from solver.patterns import (
+    order_solution_for_tutorial, 
+    generate_tutorial_steps,
+    get_all_patterns,
+    get_pattern,
+    analyze_solution_patterns
+)
 
 PORT = 8000
 WEB_DIR = Path(__file__).parent / "web"
@@ -105,6 +112,12 @@ class SolverHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_status()
         elif parsed.path == "/api/solutions":
             self.handle_get_solutions()
+        elif parsed.path == "/api/patterns":
+            self.handle_get_patterns()
+        elif parsed.path.startswith("/api/pattern/"):
+            self.handle_get_pattern(parsed.path)
+        elif parsed.path.startswith("/api/tutorial/"):
+            self.handle_get_tutorial(parsed.path)
         else:
             # Serve static files
             super().do_GET()
@@ -165,6 +178,79 @@ class SolverHandler(http.server.SimpleHTTPRequestHandler):
         
         self.send_json(response)
     
+    def handle_get_patterns(self):
+        """Get all common piece patterns for learning."""
+        # Pass current solutions so patterns can be extracted from real data
+        solutions = list(solution_set.solutions) if solution_set else []
+        patterns = get_all_patterns(solutions)
+        response = {
+            "success": True,
+            "patterns": [
+                {
+                    "id": p["id"],
+                    "name": p["name"],
+                    "description": p["description"],
+                    "difficulty": p["difficulty"],
+                    "tip": p["tip"],
+                    "pieces": p["pieces"]
+                }
+                for p in patterns
+            ]
+        }
+        self.send_json(response)
+    
+    def handle_get_pattern(self, path):
+        """Get a specific pattern by ID."""
+        pattern_id = path.replace("/api/pattern/", "")
+        solutions = list(solution_set.solutions) if solution_set else []
+        pattern = get_pattern(pattern_id, solutions)
+        
+        if pattern:
+            response = {
+                "success": True,
+                "pattern": {
+                    "id": pattern["id"],
+                    "name": pattern["name"],
+                    "description": pattern["description"],
+                    "difficulty": pattern["difficulty"],
+                    "tip": pattern["tip"],
+                    "pieces": pattern["pieces"]
+                }
+            }
+        else:
+            response = {"success": False, "error": "Pattern not found"}
+        
+        self.send_json(response)
+    
+    def handle_get_tutorial(self, path):
+        """Get tutorial steps for a specific solution."""
+        try:
+            solution_id = int(path.replace("/api/tutorial/", ""))
+        except ValueError:
+            self.send_json({"success": False, "error": "Invalid solution ID"})
+            return
+        
+        if solution_set is None or solution_id >= len(solution_set.solutions):
+            self.send_json({"success": False, "error": "Solution not found"})
+            return
+        
+        # Get the solution and order it for tutorial
+        solution = solution_set.solutions[solution_id]
+        ordered_pieces = order_solution_for_tutorial(solution)
+        tutorial_steps = generate_tutorial_steps(ordered_pieces)
+        stats = analyze_solution_patterns(ordered_pieces)
+        
+        response = {
+            "success": True,
+            "solution_id": solution_id,
+            "total_pieces": len(ordered_pieces),
+            "statistics": stats,
+            "steps": tutorial_steps,
+            "ordered_pieces": [[[x, y, z] for x, y, z in piece] for piece in ordered_pieces]
+        }
+        
+        self.send_json(response)
+    
     def send_json(self, data):
         """Send JSON response."""
         content = json.dumps(data).encode('utf-8')
@@ -177,7 +263,7 @@ class SolverHandler(http.server.SimpleHTTPRequestHandler):
     
     def log_message(self, format, *args):
         """Custom logging."""
-        if '/api/' in args[0]:
+        if args and isinstance(args[0], str) and '/api/' in args[0]:
             print(f"[API] {args[0]}")
 
 
@@ -186,9 +272,12 @@ def main():
     print(f"Serving files from: {WEB_DIR}")
     print()
     print("API Endpoints:")
-    print(f"  GET /api/status     - Get solver status")
-    print(f"  GET /api/solutions  - Get all current solutions")
+    print(f"  GET /api/status          - Get solver status")
+    print(f"  GET /api/solutions       - Get all current solutions")
     print(f"  GET /api/generate?count=N - Generate N more solutions")
+    print(f"  GET /api/patterns        - Get common piece patterns")
+    print(f"  GET /api/pattern/:id     - Get specific pattern")
+    print(f"  GET /api/tutorial/:id    - Get step-by-step tutorial for solution")
     print()
     
     # Initialize solver in background
