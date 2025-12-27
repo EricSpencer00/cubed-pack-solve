@@ -2,6 +2,12 @@
 
 A mathematically rigorous solver that enumerates **all distinct tilings** of a 6×6×6 cube using 54 identical T-tetracubes, up to rotational symmetry.
 
+## What is a T-Tetracube 6x6x6 Cube?
+
+![https://m.media-amazon.com/images/I/61mLGvedvBL._AC_SL1500_.jpg](https://m.media-amazon.com/images/I/61mLGvedvBL._AC_SL1500_.jpg)
+
+This wooden puzzle from [Amazon](https://www.amazon.com/dp/B09H28271W) is what inspired me to create this repo.
+
 ## Demo
 
 Run the static demo with precompiled solutions here online: https://ericspencer00.github.io/cubed-pack-solve/
