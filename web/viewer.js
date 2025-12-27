@@ -19,6 +19,7 @@ let pieceGroups = [];
 let isExploded = false;
 let isWireframe = false;
 let currentOpacity = 1.0;
+let isServerOnline = false;
 
 // Cube parameters
 const CUBE_SIZE = 6;
@@ -70,6 +71,8 @@ function init() {
     controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
+    controls.enableZoom = false;  // Disable zoom
+    controls.enablePan = false;   // Disable pan
     controls.target.set(CUBE_SIZE / 2 - 0.5, CUBE_SIZE / 2 - 0.5, CUBE_SIZE / 2 - 0.5);
     controls.update();
     
@@ -97,6 +100,9 @@ function init() {
     // Event listeners
     window.addEventListener('resize', onWindowResize);
     setupUIListeners();
+    
+    // Check if local server is available
+    checkServerStatus();
     
     // Try to load default solutions file
     tryLoadDefaultSolutions();
@@ -310,6 +316,94 @@ function loadFile(file) {
 }
 
 // =============================================================================
+// LIVE SERVER API
+// =============================================================================
+
+async function checkServerStatus() {
+    const statusEl = document.getElementById('server-status');
+    const generateGroup = document.getElementById('generate-group');
+    
+    try {
+        const response = await fetch('/api/status');
+        if (response.ok) {
+            const data = await response.json();
+            isServerOnline = true;
+            statusEl.textContent = 'Live';
+            statusEl.className = 'online';
+            generateGroup.style.display = 'block';
+            
+            // If server has solutions, load from API
+            if (data.total_solutions > 0) {
+                loadFromServer();
+            }
+        }
+    } catch (e) {
+        isServerOnline = false;
+        statusEl.textContent = 'Static';
+        statusEl.className = 'offline';
+        generateGroup.style.display = 'none';
+    }
+}
+
+async function loadFromServer() {
+    try {
+        const response = await fetch('/api/solutions');
+        if (response.ok) {
+            const data = await response.json();
+            loadSolutionData(data);
+        }
+    } catch (e) {
+        console.error('Failed to load from server:', e);
+    }
+}
+
+async function generateMore(count) {
+    if (!isServerOnline) return;
+    
+    const generateBtn = document.getElementById('generate-btn');
+    const generate50Btn = document.getElementById('generate-50-btn');
+    generateBtn.disabled = true;
+    generate50Btn.disabled = true;
+    generateBtn.textContent = 'Generating...';
+    
+    try {
+        const response = await fetch(`/api/generate?count=${count}`);
+        if (response.ok) {
+            const data = await response.json();
+            
+            // Add new solutions to existing data
+            if (data.solutions && data.solutions.length > 0) {
+                if (!solutionData) {
+                    solutionData = { solutions: [], metadata: {} };
+                }
+                
+                // Update IDs and append
+                const startId = solutionData.solutions.length;
+                for (const sol of data.solutions) {
+                    sol.id = startId + solutionData.solutions.length;
+                    solutionData.solutions.push(sol);
+                }
+                
+                updateUI();
+                
+                // If this was the first solutions, render
+                if (startId === 0) {
+                    renderSolution(0);
+                }
+            }
+            
+            console.log(`Generated ${data.generated} solutions, total: ${data.total}`);
+        }
+    } catch (e) {
+        console.error('Failed to generate:', e);
+    } finally {
+        generateBtn.disabled = false;
+        generate50Btn.disabled = false;
+        generateBtn.textContent = 'Generate 10 More';
+    }
+}
+
+// =============================================================================
 // UI
 // =============================================================================
 
@@ -339,6 +433,15 @@ function setupUIListeners() {
         if (e.target.files.length > 0) {
             loadFile(e.target.files[0]);
         }
+    });
+    
+    // Generate buttons (live server only)
+    document.getElementById('generate-btn').addEventListener('click', () => {
+        generateMore(10);
+    });
+    
+    document.getElementById('generate-50-btn').addEventListener('click', () => {
+        generateMore(50);
     });
     
     // Navigation

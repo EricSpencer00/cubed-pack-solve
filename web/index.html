@@ -199,6 +199,36 @@
         #help li {
             margin: 3px 0;
         }
+        
+        #server-status {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        
+        #server-status.online {
+            background: #2ecc71;
+            color: #000;
+        }
+        
+        #server-status.offline {
+            background: #e74c3c;
+            color: #fff;
+        }
+        
+        #generate-btn {
+            background: #27ae60;
+        }
+        
+        #generate-btn:hover {
+            background: #229954;
+        }
+        
+        #generate-btn:disabled {
+            background: #555;
+        }
     </style>
 </head>
 <body>
@@ -206,7 +236,7 @@
         <div id="canvas-container"></div>
         
         <div id="ui-overlay">
-            <div id="title">T-Tetracube 6×6×6 Cube Packing</div>
+            <div id="title">T-Tetracube 6×6×6 Cube Packing <span id="server-status" class="offline">Static</span></div>
             
             <div id="info">
                 <p><strong>Problem:</strong> Pack 54 T-tetracubes into a 6×6×6 cube</p>
@@ -215,8 +245,14 @@
             </div>
             
             <div id="controls">
+                <div class="control-group" id="generate-group" style="display: none;">
+                    <label>Live Generation (Local Server)</label>
+                    <button id="generate-btn">Generate 10 More</button>
+                    <button id="generate-50-btn">Generate 50 More</button>
+                </div>
+                
                 <div class="control-group">
-                    <label>Load Solutions</label>
+                    <label>Load Solutions File</label>
                     <input type="file" id="file-input" accept=".json">
                 </div>
                 
@@ -252,8 +288,6 @@
             <h4>Controls</h4>
             <ul>
                 <li><strong>Drag:</strong> Rotate view</li>
-                <li><strong>Scroll:</strong> Zoom in/out</li>
-                <li><strong>Right-drag:</strong> Pan</li>
                 <li><strong>Arrow keys:</strong> Navigate solutions</li>
             </ul>
         </div>

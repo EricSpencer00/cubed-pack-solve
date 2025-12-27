@@ -48,21 +48,34 @@ python -m solver.solve --output web/solutions.json
 python -m solver.solve --max 5 --verify
 ```
 
-### View Solutions
+### View Solutions (Static)
 
-1. Start a local web server:
+1. Start a simple web server:
    ```bash
    cd web
-   python -m http.server 8000
+   python3 -m http.server 8000
    ```
 
 2. Open http://localhost:8000 in your browser
 
-3. Use the controls to:
-   - Navigate between solutions (arrow keys or buttons)
-   - Toggle exploded view (see individual pieces)
-   - Adjust opacity
-   - Toggle wireframe mode
+### View Solutions (Live Generation)
+
+For real-time solution generation, use the live server:
+
+```bash
+source venv/bin/activate
+python server.py
+```
+
+Then open http://localhost:8000 - you'll see a "Live" indicator and can generate more solutions on-demand with the "Generate More" buttons.
+
+### Controls
+
+- **Navigate**: Arrow keys or Prev/Next buttons
+- **Rotate view**: Click and drag
+- **Explode view**: See individual T-pieces separated
+- **Opacity**: Adjust transparency
+- **Wireframe**: Toggle wireframe rendering
 
 ## Project Structure
 
@@ -78,6 +91,10 @@ python -m solver.solve --max 5 --verify
 
 /web
  ├── index.html       # Three.js viewer interface
+ ├── viewer.js        # 3D rendering code
+ └── solutions.json   # Pre-generated solutions
+
+server.py             # Live solution generation server
  ├── viewer.js        # 3D rendering code
  └── solutions.json   # Generated solutions (after running solver)
 ```
