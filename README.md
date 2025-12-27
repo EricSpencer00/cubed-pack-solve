@@ -2,6 +2,10 @@
 
 A mathematically rigorous solver that enumerates **all distinct tilings** of a 6×6×6 cube using 54 identical T-tetracubes, up to rotational symmetry.
 
+## Demo
+
+Run the static demo with precompiled solutions here online: https://ericspencer00.github.io/cubed-pack-solve/
+
 ## Problem Definition
 
 - **Board**: 6×6×6 cube = 216 unit cells
